@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (C) 2024 J. Nathanael Philipp (jnphilipp) <nathanael@philipp.land>
+# Copyright (C) 2024-2025 J. Nathanael Philipp (jnphilipp) <nathanael@philipp.land>
 # iiif-dl download images from a IIIF-server.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""Download images from IIIF server."""
 
+import img2pdf
 import logging
 import requests
 import sys
@@ -26,6 +28,7 @@ from argparse import (
     RawTextHelpFormatter,
 )
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 
 __author__ = "J. Nathanael Philipp (jnphilipp)"
@@ -53,6 +56,7 @@ class ArgFormatter(ArgumentDefaultsHelpFormatter, RawTextHelpFormatter):
 
 
 def dir_path(s: str) -> Path:
+    """Argparse type function to ensure path is a directory."""
     p = Path(s)
     if p.exists() and p.is_dir():
         return p
@@ -61,6 +65,7 @@ def dir_path(s: str) -> Path:
 
 
 def download_image(url: str, img_format: str, path: Path):
+    """Download an image from iiif in the best availible quality as the given format."""
     logging.info(f"Download image {path.stem} as {img_format}.")
     logging.debug(f"Save image to {path}.")
     r = requests.get(f"{url}/full/full/0/default.{img_format}")
@@ -86,11 +91,17 @@ if __name__ == "__main__":
     parser.add_argument("--info-url", help="download single image from a info.")
 
     parser.add_argument("--format", default="jpg", help="image format")
-    parser.add_argument(
+
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
         "--target-dir",
-        required=True,
         type=dir_path,
         help="folder to save images to.",
+    )
+    group.add_argument(
+        "--pdf",
+        type=lambda p: Path(p),
+        help="save as a PDF.",
     )
 
     parser.add_argument(
@@ -151,21 +162,47 @@ if __name__ == "__main__":
     if args.manifest_url:
         r = requests.get(args.manifest_url)
         r.raise_for_status()
+
+        tempdir = None
+        if args.pdf:
+            tempdir = TemporaryDirectory()
+
+        images = []
         for i in r.json()["sequences"][0]["canvases"]:
-            path = args.target_dir / f"{i['label'].replace(':', '_')}.{args.format}"
+            if tempdir is not None:
+                path = (
+                    Path(tempdir.name) / f"{i['label'].replace(':', '_')}.{args.format}"
+                )
+            else:
+                path = args.target_dir / f"{i['label'].replace(':', '_')}.{args.format}"
             if path.exists():
-                print(path.name)
+                logging.warning(f"The image already exists {path.name}, skipping it.")
                 continue
+            images.append(path)
             download_image(
                 i["images"][0]["resource"]["@id"],
                 args.format,
                 path,
             )
+        if tempdir is not None:
+            with open(args.pdf, "wb") as f:
+                f.write(img2pdf.convert(images))
+            tempdir.cleanup()
     elif args.info_url:
+        tempdir = None
+        if args.pdf:
+            tempdir = TemporaryDirectory()
+        path = (
+            Path(tempdir.name) if tempdir is not None else args.target_dir
+        ) / f"{args.info_url}.{args.format}"
         download_image(
             args.info_url,
             args.format,
-            args.target_dir / f"{args.info_url}.{args.format}",
+            path,
         )
+        if tempdir is not None:
+            with open(args.pdf, "wb") as f:
+                f.write(img2pdf.convert([path]))
+            tempdir.cleanup()
     else:
         parser.print_help()
