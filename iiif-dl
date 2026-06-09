@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# Copyright (C) 2024-2025 J. Nathanael Philipp (jnphilipp) <nathanael@philipp.land>
+# Copyright (C) 2024-2026 J. Nathanael Philipp (jnphilipp) <nathanael@philipp.land>
+#
 # iiif-dl download images from a IIIF-server.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -13,7 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 """Download images from IIIF server."""
 
 import img2pdf
@@ -29,7 +30,6 @@ from argparse import (
 )
 from pathlib import Path
 from tempfile import TemporaryDirectory
-
 
 __author__ = "J. Nathanael Philipp (jnphilipp)"
 __copyright__ = "Copyright 2024 J. Nathanael Philipp (jnphilipp)"
