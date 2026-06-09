@@ -68,6 +68,8 @@ def download_image(url: str, img_format: str, path: Path):
     """Download an image from iiif in the best availible quality as the given format."""
     logging.info(f"Download image {path.stem} as {img_format}.")
     logging.debug(f"Save image to {path}.")
+    if "/full/full/0/default." in url:
+        url = url[: url.index("/full/full/0/default.")]
     r = requests.get(f"{url}/full/full/0/default.{img_format}")
     r.raise_for_status()
     with open(path, "wb") as f:
