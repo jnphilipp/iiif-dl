@@ -34,9 +34,9 @@ from tempfile import TemporaryDirectory
 __author__ = "J. Nathanael Philipp (jnphilipp)"
 __copyright__ = "Copyright 2024 J. Nathanael Philipp (jnphilipp)"
 __email__ = "nathanael@philipp.land"
-__license__ = "GPLv3"
-__version__ = "0.1.0"
-__github__ = "https://github.com/jnphilipp/iiif-dl"
+__license__ = "GPL-3.0-or-later"
+__version__ = "0.2.0"
+__repository__ = "https://github.com/jnphilipp/iiif-dl"
 
 
 VERSION = (
@@ -44,7 +44,7 @@ VERSION = (
     + "License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>."
     + "\nThis is free software: you are free to change and redistribute it.\n"
     + "There is NO WARRANTY, to the extent permitted by law.\n\n"
-    + f"Report bugs to {__github__}/issues."
+    + f"Report bugs to {__repository__}/issues."
     + f"\nWritten by {__author__} <{__email__}>"
 )
 
