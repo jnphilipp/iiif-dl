@@ -93,6 +93,11 @@ if __name__ == "__main__":
     parser.add_argument("--info-url", help="download single image from a info.")
 
     parser.add_argument("--format", default="jpg", help="image format")
+    parser.add_argument(
+        "--enumerate-images",
+        action="store_true",
+        help="enumerate image names, instead if using canvas label",
+    )
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
@@ -170,19 +175,21 @@ if __name__ == "__main__":
             tempdir = TemporaryDirectory()
 
         images = []
-        for i in r.json()["sequences"][0]["canvases"]:
-            if tempdir is not None:
-                path = (
-                    Path(tempdir.name) / f"{i['label'].replace(':', '_')}.{args.format}"
-                )
+        for i, canvas in enumerate(r.json()["sequences"][0]["canvases"]):
+            if args.enumerate_images:
+                name = f"{i:06d}"
             else:
-                path = args.target_dir / f"{i['label'].replace(':', '_')}.{args.format}"
+                name = canvas["label"]
+            if tempdir is not None:
+                path = Path(tempdir.name) / f"{name.replace(':', '_')}.{args.format}"
+            else:
+                path = args.target_dir / f"{name.replace(':', '_')}.{args.format}"
             if path.exists():
                 logging.warning(f"The image already exists {path.name}, skipping it.")
                 continue
             images.append(path)
             download_image(
-                i["images"][0]["resource"]["@id"],
+                canvas["images"][0]["resource"]["@id"],
                 args.format,
                 path,
             )
